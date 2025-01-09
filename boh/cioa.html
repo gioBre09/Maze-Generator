@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #maze {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-gap: 2px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        .wall {
+            background-color: #333;
+        }
+        .start {
+            background-color: #4caf50;
+        }
+        .end {
+            background-color: #f44336;
+        }
+        .player {
+            background-color: #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maze Generator</h1>
+    <p>Use the arrow keys to move the player from green to red!</p>
+    <label for="difficulty">Select Difficulty:</label>
+    <select id="difficulty">
+        <option value="0.1">Easy</option>
+        <option value="0.3" selected>Medium</option>
+        <option value="0.5">Hard</option>
+    </select>
+    <button onclick="generateMaze()">Generate Maze</button>
+    <div id="maze"></div>
+
+    <script>
+        const mazeElement = document.getElementById('maze');
+        const difficultySelector = document.getElementById('difficulty');
+        const mazeSize = 10;
+        let playerPosition = { x: 0, y: 0 };
+        let maze = [];
+
+        function generateMaze() {
+            const wallProbability = parseFloat(difficultySelector.value);
+
+            // Initialize maze with walls
+            maze = Array.from({ length: mazeSize }, () => Array(mazeSize).fill('wall'));
+
+            // Create a solvable path
+            let x = 0;
+            let y = 0;
+            maze[y][x] = 'start';
+
+            while (x < mazeSize - 1 || y < mazeSize - 1) {
+                if (Math.random() < 0.5 && x < mazeSize - 1) {
+                    x++;
+                } else if (y < mazeSize - 1) {
+                    y++;
+                }
+                maze[y][x] = 'path';
+            }
+
+            maze[mazeSize - 1][mazeSize - 1] = 'end';
+
+            // Add random walls and paths based on difficulty
+            for (let i = 0; i < mazeSize; i++) {
+                for (let j = 0; j < mazeSize; j++) {
+                    if (maze[i][j] === 'wall' && Math.random() > wallProbability) {
+                        maze[i][j] = 'path';
+                    }
+                }
+            }
+
+            playerPosition = { x: 0, y: 0 };
+            renderMaze();
+        }
+
+        // Render the maze
+        function renderMaze() {
+            mazeElement.innerHTML = '';
+            maze.forEach((row, y) => {
+                row.forEach((cell, x) => {
+                    const cellElement = document.createElement('div');
+                    cellElement.classList.add('cell');
+                    if (cell === 'wall') cellElement.classList.add('wall');
+                    if (cell === 'start') cellElement.classList.add('start');
+                    if (cell === 'end') cellElement.classList.add('end');
+                    if (playerPosition.x === x && playerPosition.y === y) {
+                        cellElement.classList.add('player');
+                    }
+                    mazeElement.appendChild(cellElement);
+                });
+            });
+        }
+
+        // Move the player
+        function movePlayer(dx, dy) {
+            const newX = playerPosition.x + dx;
+            const newY = playerPosition.y + dy;
+            if (
+                newX >= 0 && newX < mazeSize &&
+                newY >= 0 && newY < mazeSize &&
+                maze[newY][newX] !== 'wall'
+            ) {
+                playerPosition.x = newX;
+                playerPosition.y = newY;
+                if (maze[newY][newX] === 'end') {
+                    alert('You win! 🎉');
+                }
+                renderMaze();
+            }
+        }
+
+        // Event listener for arrow keys
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') movePlayer(0, -1);
+            if (e.key === 'ArrowDown') movePlayer(0, 1);
+            if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+            if (e.key === 'ArrowRight') movePlayer(1, 0);
+        });
+
+        generateMaze();
+    </script>
+</body>
+</html>
